@@ -26,7 +26,6 @@ MANIFEST
 # Typically translation files are found under this directory and are
 # automatically built, so it's safe to remove them.
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
