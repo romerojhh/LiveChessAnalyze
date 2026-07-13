@@ -55,6 +55,12 @@ class OverlayWindow(QtWidgets.QWidget):
             
         self.setWindowFlags(flags)
         
+        if not self.setup_mode:
+            # Ensure clicks pass through on macOS
+            self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        else:
+            self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
+
         # Restore normal cursor if exiting setup mode
         if not self.setup_mode:
             self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
