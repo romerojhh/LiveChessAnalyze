@@ -23,7 +23,10 @@ class ChessEngine:
         if self.log_callback:
             self.log_callback(f"[Engine] {message}")
         else:
-            print(f"[Engine] {message}")
+            try:
+                print(f"[Engine] {message}")
+            except Exception:
+                pass
 
     def set_stockfish_path(self, path):
         if self.stockfish_path != path:

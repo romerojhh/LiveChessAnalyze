@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import numpy as np
 import chess
@@ -6,7 +7,11 @@ from vision.image_utils import get_similarity, synthesize_piece_on_background
 
 class BoardDetector:
     def __init__(self, calibration_dir="calibration"):
-        self.calibration_dir = calibration_dir
+        # On macOS App Bundles, the cwd is /, so we need to use a reliable user path
+        if sys.platform == "darwin":
+            self.calibration_dir = os.path.join(os.path.expanduser("~"), ".livechessanalyzer", calibration_dir)
+        else:
+            self.calibration_dir = calibration_dir
         self.templates = {}  # Map of (piece_char_or_empty, bg_color) -> image
         self.is_calibrated = False
         
@@ -49,7 +54,10 @@ class BoardDetector:
                     
         if not missing:
             self.is_calibrated = True
-            print("Loaded calibration templates from disk.")
+            try:
+                print("Loaded calibration templates from disk.")
+            except Exception:
+                pass
         else:
             self.is_calibrated = False
 
@@ -58,7 +66,10 @@ class BoardDetector:
         for (piece_or_empty, bg), img in self.templates.items():
             filename = self.get_template_filename(piece_or_empty, bg)
             cv2.imwrite(filename, img)
-        print("Saved calibration templates to disk.")
+        try:
+            print("Saved calibration templates to disk.")
+        except Exception:
+            pass
 
     def calibrate(self, board_image, perspective="white"):
         """
