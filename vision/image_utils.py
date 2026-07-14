@@ -1,17 +1,14 @@
 import cv2
 import numpy as np
 
-def get_similarity(img1, img2):
+def get_similarity(gray1, gray2):
     """
     Computes a similarity score between two images of the same size.
     Uses normalized correlation on grayscale representations.
     """
-    if img1.shape != img2.shape:
-        img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
+    if gray1.shape != gray2.shape:
+        gray2 = cv2.resize(gray2, (gray1.shape[1], gray1.shape[0]))
         
-    gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-    
     # Check standard deviation to avoid division by zero in matchTemplate
     std1 = np.std(gray1)
     std2 = np.std(gray2)
