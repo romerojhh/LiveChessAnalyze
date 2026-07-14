@@ -693,30 +693,38 @@ class ControlPanel(QtWidgets.QWidget):
             # Piece layout changed! Check if it corresponds to a legal move from current turn
             move_found = False
             
+            # Calculate changed squares between current internal board and detected board
+            changed_squares = set()
+            for sq in chess.SQUARES:
+                if current_pieces.get(sq) != detected_pieces.get(sq):
+                    changed_squares.add(sq)
+
             # Try current turn first
             for move in self.current_board.legal_moves:
-                self.current_board.push(move)
-                match = (self.current_board.piece_map() == detected_pieces)
-                self.current_board.pop()
-                if match:
+                if move.from_square in changed_squares and move.to_square in changed_squares:
                     self.current_board.push(move)
-                    self.log(f"Detected Move: {move.uci()}")
-                    move_found = True
-                    break
+                    match = (self.current_board.piece_map() == detected_pieces)
+                    self.current_board.pop()
+                    if match:
+                        self.current_board.push(move)
+                        self.log(f"Detected Move: {move.uci()}")
+                        move_found = True
+                        break
                     
             # If not matching, check if opponent moved twice or we missed active turn syncing
             if not move_found:
                 # Temporarily toggle turn to see if the other player made a move
                 self.current_board.turn = not self.current_board.turn
                 for move in self.current_board.legal_moves:
-                    self.current_board.push(move)
-                    match = (self.current_board.piece_map() == detected_pieces)
-                    self.current_board.pop()
-                    if match:
+                    if move.from_square in changed_squares and move.to_square in changed_squares:
                         self.current_board.push(move)
-                        self.log(f"Detected Move (Turn-corrected): {move.uci()}")
-                        move_found = True
-                        break
+                        match = (self.current_board.piece_map() == detected_pieces)
+                        self.current_board.pop()
+                        if match:
+                            self.current_board.push(move)
+                            self.log(f"Detected Move (Turn-corrected): {move.uci()}")
+                            move_found = True
+                            break
                 # If still not found, revert turn
                 if not move_found:
                     self.current_board.turn = not self.current_board.turn
