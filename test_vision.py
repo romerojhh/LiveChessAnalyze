@@ -5,6 +5,7 @@ import chess
 import chess.engine
 from vision.board_detector import BoardDetector
 from vision.image_utils import get_similarity
+from vision.board_locator import find_chessboard_on_screen
 from engine.chess_engine import ChessEngine, IllegalInstructionError
 
 def create_mock_board(pieces_matrix):
@@ -168,6 +169,41 @@ def test_illegal_instruction_detection():
         # Restore original function
         chess.engine.SimpleEngine.popen_uci = original_popen
 
+def test_board_locator():
+    print("\n--- Running Chessboard Locator (Auto-Snap) Test ---")
+    # 1. Create a large virtual canvas representing a screen
+    canvas = np.zeros((800, 800, 3), dtype=np.uint8)
+
+    # 2. Render a mock chess board
+    starting_matrix = [
+        ["r", "n", "b", "q", "k", "b", "n", "r"],
+        ["p", "p", "p", "p", "p", "p", "p", "p"],
+        [None] * 8,
+        [None] * 8,
+        [None] * 8,
+        [None] * 8,
+        ["P", "P", "P", "P", "P", "P", "P", "P"],
+        ["R", "N", "B", "Q", "K", "B", "N", "R"]
+    ]
+    board_img = create_mock_board(starting_matrix)  # 400x400 pixels
+
+    # 3. Paste the board at (200, 200) inside the canvas
+    canvas[200:600, 200:600] = board_img
+
+    # 4. Search for the board
+    detected_rect = find_chessboard_on_screen(canvas)
+
+    assert detected_rect is not None, "Failed to locate the chessboard on canvas!"
+    x, y, w, h = detected_rect
+    print(f"Located chessboard at: X={x}, Y={y}, W={w}, H={h}")
+
+    # Assert coordinates are exactly or very close to (200, 200, 400, 400)
+    assert abs(x - 200) <= 2, f"Incorrect X coordinate: {x} (expected ~200)"
+    assert abs(y - 200) <= 2, f"Incorrect Y coordinate: {y} (expected ~200)"
+    assert abs(w - 400) <= 2, f"Incorrect Width: {w} (expected ~400)"
+    assert abs(h - 400) <= 2, f"Incorrect Height: {h} (expected ~400)"
+    print("Chessboard Locator Test: PASSED")
+
 def run_all_tests():
     print("==============================================")
     print("      LIVE CHESS ANALYZER TEST SUITE")
@@ -177,6 +213,7 @@ def run_all_tests():
     test_black_perspective()
     test_chess_engine_guards()
     test_illegal_instruction_detection()
+    test_board_locator()
     
     print("\n==============================================")
     print("      ALL TESTS PASSED SUCCESSFULLY!")
