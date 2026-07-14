@@ -159,6 +159,11 @@ class BoardDetector:
         
         detected_board = chess.Board(None)  # Start empty
         
+        # Precompute grayscale templates once before the loop
+        gray_templates = {}
+        for k, v in self.templates.items():
+            gray_templates[k] = cv2.cvtColor(v, cv2.COLOR_BGR2GRAY)
+
         # We only test actual pieces. If a square is flat, it is empty.
         pieces_to_test = list("PRNBQKprnbqk")
         
@@ -188,8 +193,8 @@ class BoardDetector:
                 
                 for piece in pieces_to_test:
                     template_key = (piece, bg_color)
-                    if template_key in self.templates:
-                        score = get_similarity(square, self.templates[template_key])
+                    if template_key in gray_templates:
+                        score = get_similarity(gray_square, gray_templates[template_key])
                         if score > best_score:
                             best_score = score
                             best_piece = piece
